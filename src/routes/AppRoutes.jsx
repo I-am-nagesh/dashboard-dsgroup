@@ -5,10 +5,12 @@ import InviteConfirmPage from "../features/auth/pages/InviteConfirmPage";
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
 import AdminPage from "../features/admin/pages/AdminPage";
 import ProtectedRoute from "./ProtectedRoute";
+import RootRedirect from "../features/auth/pages/RootRedirect";
 
 export default function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/confirm-invite" element={<InviteConfirmPage />} />
