@@ -1,8 +1,27 @@
+// src/features/auth/pages/LoginPage.jsx
+import { useNavigate } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
+import { login, logout } from "../services/authService";
+
+import { useAuthStore } from "../../../store/authStore";
 
 export default function LoginPage() {
-  const handleLogin = (form) => {
-    console.log("Login:", form);
+  const navigate = useNavigate();
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const handleLogin = async (form) => {
+    try {
+      const user = await login(form.email, form.password);
+      setUser(user);
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert("Invalid credentials or login failed.");
+    }
   };
 
   return (
