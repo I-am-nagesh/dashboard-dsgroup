@@ -6,6 +6,16 @@ import DashboardPage from "../features/dashboard/pages/DashboardPage";
 import AdminPage from "../features/admin/pages/AdminPage";
 import ProtectedRoute from "./ProtectedRoute";
 import RootRedirect from "../features/auth/pages/RootRedirect";
+import Navbar from "../components/Navbar";
+
+function AppLayout({ children }) {
+  return (
+    <>
+      <Navbar />
+      <main>{children}</main>
+    </>
+  );
+}
 
 export default function AppRoutes() {
   return (
@@ -18,8 +28,10 @@ export default function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["employee"]}>
-            <DashboardPage />
+          <ProtectedRoute allowedRoles={["employee", "admin"]}>
+            <AppLayout>
+              <DashboardPage />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -28,7 +40,9 @@ export default function AppRoutes() {
         path="/admin"
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
-            <AdminPage />
+            <AppLayout>
+              <AdminPage />
+            </AppLayout>
           </ProtectedRoute>
         }
       />

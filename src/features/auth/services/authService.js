@@ -55,7 +55,11 @@ export const logout = async () => {
     try {
       await client.send(new GlobalSignOutCommand({ AccessToken: accessToken }));
     } catch (err) {
+       if (err.name === "NotAuthorizedException") {
+        console.log("Access token already expired, ignoring.");
+      } else {
       console.warn("Cognito logout failed", err);
+      }
     }
   }
   localStorage.clear();
