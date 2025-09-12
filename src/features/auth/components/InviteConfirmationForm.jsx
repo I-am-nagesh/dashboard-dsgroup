@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_SET_PASSWORD_API; 
 
@@ -6,6 +7,8 @@ export default function InviteConfirmationForm() {
   const [form, setForm] = useState({ email: "", tempPassword: "", newPassword: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +27,7 @@ export default function InviteConfirmationForm() {
 
       setMessage({ type: "success", text: "Password set successfully! You can now login." });
       setForm({ email: "", tempPassword: "", newPassword: "" });
+      navigate("/login");
     } catch (err) {
       console.error("Set password error:", err);
       setMessage({ type: "error", text: err.message || "Failed to set password" });
