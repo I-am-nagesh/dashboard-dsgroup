@@ -1,51 +1,64 @@
-import React from "react";
+import React, { useState } from "react";
+import { connectToAwsIot, getAwsCredentials } from "../../../utils/awsMqtt";
 import { useAuthStore } from "../../../store/authStore";
 
-import DeviceCard from "../components/DeviceCard";
+function DashboardPage() {
+  const user = useAuthStore((state) => state.user);
+  const [messages, setMessages] = useState([]);
+  const [connected, setConnected] = useState(false);
 
-const mockDevices = [
-  {
-    deviceId: "device_01",
-    temperature: 32.5,
-    timestamp: "2025-09-13T12:30:00Z",
-    status: "ok",
-  },
-  {
-    deviceId: "device_02",
-    temperature: null,
-    timestamp: "2025-09-13T12:30:00Z",
-    status: "missing",
-  },
-  {
-    deviceId: "device_03",
-    temperature: 31.9,
-    timestamp: "2025-09-13T12:30:00Z",
-    status: "ok",
-  },
-];
+  const handleConnect = async () => {
+    if (!user?.idToken) {
+      console.warn("⚠️ No IdToken found");
+      return;
+    }
 
-export default function DashboardPage() {
-  const { user } = useAuthStore();
+    try {
+      // console.log("👤 Logged-in User:", user);
+      const creds = await getAwsCredentials(user.idToken);
+      await connectToAwsIot(creds, ({ topic, message }) => {
+        setMessages((prev) => [...prev, { topic, message }]);
+      });
+
+      setConnected(true);
+    } catch (err) {
+      console.error("❌ Failed to connect to AWS IoT:", err);
+    }
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p>
-        Signed in as: <strong>{user?.email}</strong>
-      </p>
-      <p className="mt-4">This is a minimal dashboard page for testing.</p>
+    <div style={{ padding: 20 }}>
+      <h1>Dashboard</h1>
 
-      <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {mockDevices.map((device) => (
-          <DeviceCard
-            key={device.deviceId}
-            deviceId={device.deviceId}
-            temperature={device.temperature}
-            timestamp={device.timestamp}
-            status={device.status}
-          />
-        ))}
-      </div>
+      {!connected ? (
+        <button
+          className="font-black border-amber-600 bg-amber-300 p-2"
+          onClick={handleConnect}
+        >
+          Connect to AWS IoT
+        </button>
+      ) : (
+        <div style={{ marginTop: 30 }}>
+          <h2>Live Messages:</h2>
+          <div
+            style={{
+              maxHeight: 400,
+              overflowY: "auto",
+              border: "1px solid #ccc",
+              padding: 10,
+            }}
+          >
+            {messages.map((m, idx) => (
+              <div key={idx}>
+                <strong>{m.topic}:</strong> {m.message}
+              </div>
+            ))}
+            {messages.length === 0 && <div>No messages yet...</div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+export default DashboardPage;

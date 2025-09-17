@@ -23,5 +23,5 @@ const DeviceCard = ({ slave_id, temperature, timestamp, status }) => {
     </div>
   );
 };
-
 export default DeviceCard;
+
