@@ -23,10 +23,15 @@ export async function getAwsCredentials(idToken) {
   const creds = await provider();
   // console.log("ID Token:", idToken);
   // console.log("✅ Obtained AWS credentials:", creds);
-  return provider();
+  return creds;
 }
 
 export async function connectToAwsIot(creds, onMessageCallback) {
+  if (mqttConnection) {
+    // console.log("⚡ Already connected to AWS IoT");
+    return mqttConnection;
+  }
+
   if (!creds) throw new Error("Missing AWS credentials!");
 
   const config =

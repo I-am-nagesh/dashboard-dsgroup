@@ -1,60 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { connectToAwsIot, getAwsCredentials } from "../../../utils/awsMqtt";
 import { useAuthStore } from "../../../store/authStore";
+import DataCard from "../components/DataCard";
 
 function DashboardPage() {
   const user = useAuthStore((state) => state.user);
-  const [messages, setMessages] = useState([]);
+  const [devices, setDevices] = useState({});
   const [connected, setConnected] = useState(false);
 
-  const handleConnect = async () => {
-    if (!user?.idToken) {
-      console.warn("⚠️ No IdToken found");
-      return;
-    }
+  useEffect(() => {
+    const connect = async () => {
+      if (!user?.idToken || connected) return;
 
-    try {
-      // console.log("👤 Logged-in User:", user);
-      const creds = await getAwsCredentials(user.idToken);
-      await connectToAwsIot(creds, ({ topic, message }) => {
-        setMessages((prev) => [...prev, { topic, message }]);
-      });
+      try {
+        const creds = await getAwsCredentials(user.idToken);
+        await connectToAwsIot(creds, ({ topic, message }) => {
+          try {
+            const parsed = JSON.parse(message);
 
-      setConnected(true);
-    } catch (err) {
-      console.error("❌ Failed to connect to AWS IoT:", err);
-    }
-  };
+            setDevices((prevDevices) => {
+              const updated = { ...prevDevices };
+              parsed.slaves.forEach((device) => {
+                updated[device.slave_id] = {
+                  ...device,
+                  timestamp: parsed.timestamp,
+                  topic,
+                };
+              });
+              return updated;
+            });
+          } catch (err) {
+            console.error("❌ Failed to parse message:", err, message);
+          }
+        });
+
+        setConnected(true);
+      } catch (err) {
+        console.error("❌ Failed to connect to AWS IoT:", err);
+      }
+    };
+
+    connect();
+  }, [user, connected]);
+
+  const deviceList = Object.values(devices);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Dashboard</h1>
-
-      {!connected ? (
-        <button
-          className="font-black border-amber-600 bg-amber-300 p-2"
-          onClick={handleConnect}
-        >
-          Connect to AWS IoT
-        </button>
+    <div className="min-h-screen bg-gray-100 p-6">
+      {!user?.idToken ? (
+        <div>Please login to see your devices.</div>
+      ) : !connected ? (
+        <div>Connecting to Server</div>
+      ) : deviceList.length === 0 ? (
+        <div>No Data yet...</div>
       ) : (
-        <div style={{ marginTop: 30 }}>
-          <h2>Live Messages:</h2>
-          <div
-            style={{
-              maxHeight: 400,
-              overflowY: "auto",
-              border: "1px solid #ccc",
-              padding: 10,
-            }}
-          >
-            {messages.map((m, idx) => (
-              <div key={idx}>
-                <strong>{m.topic}:</strong> {m.message}
-              </div>
-            ))}
-            {messages.length === 0 && <div>No messages yet...</div>}
-          </div>
+        <div className="flex flex-wrap -m-4">
+          {deviceList.map((device) => (
+            <DataCard
+              key={device.slave_id}
+              slave_id={device.slave_id}
+              temperature={device.temperature}
+              status={device.status}
+              timestamp={device.timestamp}
+            />
+          ))}
         </div>
       )}
     </div>
