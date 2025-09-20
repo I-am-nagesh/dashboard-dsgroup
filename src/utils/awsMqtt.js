@@ -21,14 +21,14 @@ export async function getAwsCredentials(idToken) {
   });
 
   const creds = await provider();
-  // console.log("ID Token:", idToken);
-  // console.log("✅ Obtained AWS credentials:", creds);
+  console.log("ID Token:", idToken);
+  console.log("✅ Obtained AWS credentials:", creds);
   return creds;
 }
 
 export async function connectToAwsIot(creds, onMessageCallback) {
   if (mqttConnection) {
-    // console.log("⚡ Already connected to AWS IoT");
+    console.log("⚡ Already connected to AWS IoT");
     return mqttConnection;
   }
 
@@ -45,22 +45,22 @@ export async function connectToAwsIot(creds, onMessageCallback) {
         creds.secretAccessKey,
         creds.sessionToken
       )
-      .build();
+      .build(); 
 
   const client = new mqtt.MqttClient();
   mqttConnection = client.new_connection(config);
 
   await mqttConnection.connect();
-  // console.log("✅ Connected to AWS IoT with endpoint:", IOT_ENDPOINT);
+  console.log("✅ Connected to AWS IoT with endpoint:", IOT_ENDPOINT);
 
   await mqttConnection.subscribe(
     "devices/+/data",
     mqtt.QoS.AtLeastOnce,
     (topic, payload) => {
       const message = new TextDecoder().decode(payload);
-      // console.log("📥 Message received:");
-      // console.log("   ▶ Topic:", topic);
-      // console.log("   ▶ Payload:", message);
+      console.log("📥 Message received:");
+      console.log("   ▶ Topic:", topic);
+      console.log("   ▶ Payload:", message);
 
       if (onMessageCallback) onMessageCallback({ topic, message });
     }
