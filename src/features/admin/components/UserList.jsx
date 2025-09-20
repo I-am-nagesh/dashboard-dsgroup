@@ -124,7 +124,7 @@ const UserList = ({ users = [], onEdit, onDelete }) => {
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-600 font-semibold tracking-wider border-b border-gray-200/80">
+          <thead className="text-sm text-gray-800 font-semibold tracking-wider border-b border-gray-200/80">
             <tr>
               <th className="px-6 py-3">Name</th>
               <th className="px-6 py-3">Contact</th>
